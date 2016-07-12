@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle       : Moon Phases and Crime Rates in the City of Chicago\nsubtitle    : Assignement work of Developing Data Products by JHU on Corsera\nauthor      : T-StrawClown\njob         : \nframework   : io2012        # {io2012, html5slides, shower, dzslides, ...}\nhighlighter : highlight.js  # {highlight.js, prettify, highlight}\nhitheme     : tomorrow      # \nwidgets     : []            # {mathjax, quiz, bootstrap}\next_widgets : {rCharts: [libraries/rickshaw]}\nmode        : selfcontained # {standalone, draft}\nknit        : slidify::knit2slides\n---\n\n## Read-And-Delete\n\n```{r rickshaw, comment=NA, results='asis', cache=FALSE, message=FALSE, echo=FALSE, cache=\"crimes.by_yearmonth\"}\nlibrary(rCharts)\nlibrary(dplyr)\nload(\"data/crimes.RData\")\n\ncrimes.by_yearmonth <- crimes.by_day %>%\n    #mutate(ym = as.POSIXct(paste(year, month, \"01\", sep = \"-\"))) %>%\n    mutate(ym = as.numeric(as.POSIXct(paste(year, month, \"01\", sep = \"-\")))) %>%\n    group_by(ym, moon) %>%\n    summarize(cnt = sum(cnt)) %>%\n    filter(!is.na(ym))\nt <- \"line\"\np2 <- Rickshaw$new()\np2$layer(cnt ~ ym, group = \"moon\", data = crimes.by_yearmonth, type = t,\n         colors = c(\"#e41a1c\", \"#377eb8\", \"#4daf4a\", \"#984ea3\"))\np2$set(slider = TRUE,\n       height = 350)\np2$show('iframe', cdn = TRUE)\n```\n\n--- .class #id\n\n\n## Slide 2\n\n\n\n\n",
+    "created" : 1468338984287.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3493944674",
+    "id" : "FB65CF73",
+    "lastKnownWriteTime" : 1468340749,
+    "last_content_update" : 1468340749034,
+    "path" : "D:/Coursera/data_science/gitrepo/DDPSlidify/index.Rmd",
+    "project_path" : "index.Rmd",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

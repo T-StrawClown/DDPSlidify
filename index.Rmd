@@ -1,0 +1,44 @@
+---
+title       : Moon Phases and Crime Rates in the City of Chicago
+subtitle    : Assignement work of Developing Data Products by JHU on Corsera
+author      : T-StrawClown
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+ext_widgets : {rCharts: [libraries/rickshaw]}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+## Read-And-Delete
+
+```{r rickshaw, comment=NA, results='asis', cache=FALSE, message=FALSE, echo=FALSE, cache="crimes.by_yearmonth"}
+library(rCharts)
+library(dplyr)
+load("data/crimes.RData")
+
+crimes.by_yearmonth <- crimes.by_day %>%
+    #mutate(ym = as.POSIXct(paste(year, month, "01", sep = "-"))) %>%
+    mutate(ym = as.numeric(as.POSIXct(paste(year, month, "01", sep = "-")))) %>%
+    group_by(ym, moon) %>%
+    summarize(cnt = sum(cnt)) %>%
+    filter(!is.na(ym))
+t <- "line"
+p2 <- Rickshaw$new()
+p2$layer(cnt ~ ym, group = "moon", data = crimes.by_yearmonth, type = t,
+         colors = c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3"))
+p2$set(slider = TRUE,
+       height = 350)
+p2$show('iframe', cdn = TRUE)
+```
+
+--- .class #id
+
+
+## Slide 2
+
+
+
+

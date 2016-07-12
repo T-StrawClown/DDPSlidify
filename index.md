@@ -12,9 +12,9 @@ mode        : selfcontained # {standalone, draft}
 knit        : slidify::knit2slides
 ---
 
-## Read-And-Delete
+## Crimes Per Day 
 
-<iframe src=' figure/rickshaw-1.html ' scrolling='no' frameBorder='0' seamless class='rChart rickshaw ' id=iframe- chart13305c1d9d ></iframe> <style>iframe.rChart{ width: 100%; height: 400px;}</style>
+<iframe src="figure/rs.html" width=100%, height=400></iframe>
 
 --- .class #id
 

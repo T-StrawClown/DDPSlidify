@@ -12,7 +12,7 @@ mode        : selfcontained # {standalone, draft}
 knit        : slidify::knit2slides
 ---
 
-## Read-And-Delete
+## Crimes Per Day 
 
 ```{r rickshaw, comment=NA, results='asis', cache=FALSE, message=FALSE, echo=FALSE, cache.vars=c("crimes.by_yearmonth")}
 library(rCharts)

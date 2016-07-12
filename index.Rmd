@@ -14,7 +14,7 @@ knit        : slidify::knit2slides
 
 ## Read-And-Delete
 
-```{r rickshaw, comment=NA, results='asis', cache=FALSE, message=FALSE, echo=FALSE}
+```{r rickshaw, comment=NA, results='asis', cache=FALSE, message=FALSE, echo=FALSE, cache="crimes.by_yearmonth"}
 library(rCharts)
 library(dplyr)
 load("data/crimes.RData")
@@ -34,10 +34,8 @@ p2$set(slider = TRUE,
 p2$show('iframe', cdn = TRUE)
 ```
 
+--- .class #id
 
-<!-- --- .class #id  -->
---- 
- 
 
 ## Slide 2
 

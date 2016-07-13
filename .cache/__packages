@@ -1,0 +1,15 @@
+base
+slidify
+rCharts
+dplyr
+knitr
+reshape2
+devtools
+tidyr
+googleVis
+lunar
+lubridate
+leaflet
+maps
+stringr
+ggplot2

@@ -1,47 +1,182 @@
 ---
-title       : Moon Phases and Crime Rates in the City of Chicago
-subtitle    : Assignement work of Developing Data Products by JHU on Corsera
+title       : Full Moon and Crime Rates in the City of Chicago
+subtitle    : Assignment work of Developing Data Products by JHU on Coursera
 author      : T-StrawClown
 job         : 
 framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
 highlighter : highlight.js  # {highlight.js, prettify, highlight}
 hitheme     : tomorrow      # 
-widgets     : []            # {mathjax, quiz, bootstrap}
-ext_widgets : {rCharts: [libraries/rickshaw]}
+widgets     : [bootstrap, quiz]            # {mathjax, quiz, bootstrap}
 mode        : selfcontained # {standalone, draft}
 knit        : slidify::knit2slides
 ---
 
-## Crimes Per Day 
-
-```{r rickshaw, comment=NA, results='asis', cache=FALSE, message=FALSE, echo=FALSE, cache.vars=c("crimes.by_yearmonth")}
-library(rCharts)
+## Crimes Per Month by Moon Phases 
+First lets check how crime rates look overall split by moon phase (drag to zoom, right-click to reset).
+```{r permonth, message = F, error = F, warning = F, comment = NA, echo = F, results = 'asis', cache.vars=c("crimes.by_yearmonth")}
+library(googleVis)
 library(dplyr)
+library(tidyr)
 library(knitr)
+library(ggplot2)
+
 load("data/crimes.RData")
 
 crimes.by_yearmonth <- crimes.by_day %>%
-    #mutate(ym = as.POSIXct(paste(year, month, "01", sep = "-"))) %>%
-    mutate(ym = as.numeric(as.POSIXct(paste(year, month, "01", sep = "-")))) %>%
+    mutate(ym = as.POSIXct(paste(year, month, "01", sep = "-"))) %>%
+    #mutate(ym = as.numeric(as.POSIXct(paste(year, month, "01", sep = "-")))) %>%
     group_by(ym, moon) %>%
     summarize(cnt = sum(cnt)) %>%
-    filter(!is.na(ym))
-t <- "line"
-p2 <- Rickshaw$new()
-p2$layer(cnt ~ ym, group = "moon", data = crimes.by_yearmonth, type = t,
-         colors = c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3"))
-p2$set(slider = TRUE,
-       height = 350)
-#p2$show('iframe', cdn = TRUE)
-p2$save("figure/rs.html")
-cat('<iframe src="figure/rs.html" width=100%, height=400></iframe>')
+    filter(!is.na(ym)) %>%
+    spread(moon, cnt)
+
+c1 <- gvisLineChart(data = crimes.by_yearmonth,
+                    xvar = "ym",
+                    yvar = c("New", "Waxing", "Full", "Waning"),
+                    options = list(colors="['#e41a1c', '#377eb8', '#4daf4a', '#984ea3']",
+                                   curveType = "function",
+                                   width = 1000,
+                                   height = 400,
+                                   explorer = "{actions: ['dragToZoom', 'rightClickToReset']}"))
+cat(c1$html$chart)
 ```
+Doesn't seem that there is something special about full moon.
 
 --- .class #id
 
 
-## Slide 2
+## Top 5 Crime Types
+Here is another look. Here are top 5 types of crimes committed during full moon.
+```{r columns, message = F, error = F, warning = F, comment = NA, echo = F, results = 'asis', cache.vars=c("crimes.by_typetop5", "crimes.by_type", "crimes.by_typefullmoon")}
+crimes.by_type <- crimes.tidy %>%
+  #filter(moon == "Full") %>%
+  group_by(type, moon) %>%
+  summarize(cnt = n()) %>%
+  arrange(desc(cnt))
+crimes.by_typefullmoon <- crimes.tidy %>%
+  filter(moon == "Full") %>%
+  group_by(type) %>%
+  summarize(cnt = n()) %>%
+  arrange(desc(cnt)) %>%
+  top_n(5)
+crimes.by_typetop5 <- 
+  inner_join(crimes.by_type, crimes.by_typefullmoon, by = c("type" = "type")) %>%
+  select(type, moon, cnt = cnt.x) %>%
+  group_by(type) 
+crimes.by_typetop5 <- crimes.by_typetop5 %>%
+  spread(moon, cnt) %>%
+  arrange(desc(Full), type)
 
+c2 <- gvisColumnChart(data = crimes.by_typetop5,
+                      xvar = "type",
+                      options = list(width = 1000,
+                                    height = 400,
+                                    colors="['#e41a1c', '#377eb8', '#4daf4a', '#984ea3']"))
+cat(c2$html$chart)
+```
+Doesn't look promising too...
 
+--- &twocol w1:50% w2:50%
 
+### Statistical Perspective
+```{r, message = F, error = F, warning = F, comment = NA, echo = F, results = 'asis'}
+full.ds <- subset(crimes.by_day, moon == "Full")
+nonfull.ds <- subset(crimes.by_day, moon != "Full")
+full.sims <- matrix(data = sample(full.ds$cnt,
+                                  1000 * 1000,
+                                  replace = T),
+                    nrow = 1000,
+                    ncol = 1000)
+nonfull.sims <- matrix(data = sample(nonfull.ds$cnt,
+                                     1000 * 1000,
+                                     replace = T),
+                       nrow = 1000,
+                       ncol = 1000)
+full.means <- apply(full.sims, 1, mean)
+nonfull.means <- apply(nonfull.sims, 1, mean)
+```
+
+*** =left
+Distribution from all data (starting from year 2009)
+
+```{r, message = F, error = F, warning = F, comment = NA, echo = F, results = 'asis', fig.width=7, fig.height=5, fig.align='left', dpi=100}
+c3 <- ggplot(data = crimes.by_day,
+           aes(x = cnt, color = moon)) +
+    geom_density(show.legend = F) +
+    stat_density(geom = "line",
+                 position = "identity") +
+    #scale_color_brewer(type = "qual", guide = "legend") +
+    scale_color_manual(values = c("#e41a1c", "#377eb8", "#4daf4a", "#984ea3")) +
+    geom_density(data = subset(crimes.by_day, moon == "Full"),
+                 aes(x = cnt),
+                 color = "#4daf4a",
+                 size = 1.2,
+                 show.legend = F) +
+    ggtitle("Density of crimes per day") +
+    ylab("") + xlab("") + theme(legend.position = c(0.9, 0.8),
+                                legend.background = element_blank())
+print(c3)
+```
+
+*** =right
+1K x 1K Bootstrap simulations (with replacement)
+
+```{r, message = F, error = F, warning = F, comment = NA, echo = F, results = 'asis', fig.width=7, fig.height=5, fig.align='left', dpi=100}
+c4 <- ggplot() +
+    geom_density(data = as.data.frame(full.means),
+                 aes(x = full.means),
+                 color = "#4daf4a",
+                 size = 1.2,
+                 show.legend = F) +
+    stat_density(data = as.data.frame(full.means),
+                 aes(x = full.means, color = "Full"),
+                 geom = "line",
+                 position = "identity") +
+    geom_vline(xintercept = mean(full.means) + c(-1,1) * qnorm(.975) * sd(full.means),
+               linetype = "dashed",
+               color = "#4daf4a") +
+    geom_vline(xintercept = mean(full.means),
+               color = "#4daf4a") +
+    geom_density(data = as.data.frame(nonfull.means),
+                 aes(x = nonfull.means),
+                 color = "salmon",
+                 show.legend = F) +
+    stat_density(data = as.data.frame(nonfull.means),
+                 aes(x = nonfull.means, color = "Other"),
+                 geom = "line",
+                 position = "identity") +
+    geom_vline(xintercept = mean(nonfull.means) + c(-1,1) * qnorm(.975) * sd(nonfull.means),
+               linetype = "dashed",
+               color = "salmon") +
+    geom_vline(xintercept = mean(nonfull.means),
+               color = "salmon") +
+    scale_colour_manual(name = "moon", 
+                        values = c("Full" = "#4daf4a", "Other"="salmon"),
+                        labels = c("Full", "Other"),
+                        guide = "legend") +
+    ggtitle("Density of simulated means of crimes per day") +
+    xlab("") + ylab("") + theme(legend.position = c(0.9, 0.8),
+                                legend.background = element_blank())
+print(c4)
+```
+
+--- &radio
+
+### Quiz
+# The Ultimate Question
+
+So after looking at these slides what do you think about statement that there are more crimes committed when the moon is full?
+
+1. There is no such myth
+2. _There is no statistical evidence of that_
+3. It can be clearly seen that it is true
+4. 42
+
+*** .hint
+No hints, sorry. You'll have to figure it out yourself
+
+*** .explanation
+Well from this presentation you can see that it is more likely that the opposite is true. Though the difference is not statistically significant.
+
+But we both know that the true answer to the Ultimate Question is [42] (http://www.urbandictionary.com/define.php?term=42)
 

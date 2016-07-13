@@ -734,7 +734,7 @@ callbacks.shift()();
 <div id="LineChartID1aa86216611c" 
   style="width: 1000; height: 400;">
 </div>
-Doesn't seem that there is something special about full moon.
+Doesn't seem that there is something special about full moon. BTW more detailed data can be found in my shiny application [here] (https://tstrawclown.shinyapps.io/DDPCourseProject)
 
 --- .class #id
 
